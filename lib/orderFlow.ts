@@ -1,4 +1,5 @@
 import { appendNotified, hasNotified, notifyWebVoucherEvent } from "./botNotifier";
+import { appendWhatsappNotified, hasWhatsappNotified, sendFonnteVoucherMessage } from "./fonnteNotifier";
 import { getGatewayPaymentByOrderId } from "./ketantechpay";
 import { getOrder, listOrders, updateOrder } from "./store";
 import { generateVoucher } from "./voucherGenerator";
@@ -101,6 +102,12 @@ async function handlePaidOrder(order: VoucherOrder, force = false): Promise<Vouc
       await notifyWebVoucherEvent("voucher_delivered", delivered);
       delivered = (await updateOrder(delivered.id, { notifiedEvents: appendNotified(delivered, "voucher_delivered") })) || delivered;
     }
+    if (delivered && !hasWhatsappNotified(delivered, "voucher_delivered")) {
+      const sent = await sendFonnteVoucherMessage("voucher_delivered", delivered);
+      if (sent) {
+        delivered = (await updateOrder(delivered.id, { notifiedEvents: appendWhatsappNotified(delivered, "voucher_delivered") })) || delivered;
+      }
+    }
     return delivered || order;
   } catch (err) {
     let pending = await updateOrder(order.id, {
@@ -110,6 +117,12 @@ async function handlePaidOrder(order: VoucherOrder, force = false): Promise<Vouc
     if (pending && !hasNotified(pending, "voucher_pending")) {
       await notifyWebVoucherEvent("voucher_pending", pending);
       pending = (await updateOrder(pending.id, { notifiedEvents: appendNotified(pending, "voucher_pending") })) || pending;
+    }
+    if (pending && !hasWhatsappNotified(pending, "voucher_pending")) {
+      const sent = await sendFonnteVoucherMessage("voucher_pending", pending);
+      if (sent) {
+        pending = (await updateOrder(pending.id, { notifiedEvents: appendWhatsappNotified(pending, "voucher_pending") })) || pending;
+      }
     }
     return pending || order;
   }
