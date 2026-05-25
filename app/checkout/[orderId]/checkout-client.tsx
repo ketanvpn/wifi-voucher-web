@@ -29,6 +29,7 @@ export default function CheckoutClient({ orderId }: { orderId: string }) {
 
   useEffect(() => {
     let active = true;
+    let timer: number | undefined;
     async function load() {
       try {
         const res = await fetch(`/api/orders/${orderId}`, { cache: "no-store" });
@@ -38,14 +39,18 @@ export default function CheckoutClient({ orderId }: { orderId: string }) {
         setOrder(body.data);
         setError("");
         if (body.data.status === "paid_delivered") {
+          if (timer) window.clearInterval(timer);
           window.location.href = `/success/${orderId}`;
+        }
+        if (["payment_expired", "payment_failed", "cancelled"].includes(body.data.status) && timer) {
+          window.clearInterval(timer);
         }
       } catch (err) {
         if (active) setError((err as Error).message);
       }
     }
     load();
-    const timer = window.setInterval(load, 3000);
+    timer = window.setInterval(load, 3000);
     return () => {
       active = false;
       window.clearInterval(timer);

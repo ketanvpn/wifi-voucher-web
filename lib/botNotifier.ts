@@ -1,6 +1,6 @@
 import type { VoucherOrder } from "./types";
 
-export type WebVoucherEvent = "order_created" | "payment_success" | "voucher_delivered" | "voucher_pending";
+export type WebVoucherEvent = "order_created" | "payment_success" | "payment_expired" | "voucher_delivered" | "voucher_pending";
 
 function notifyUrl(): string {
   if (process.env.BOT_INTERNAL_NOTIFY_URL) return process.env.BOT_INTERNAL_NOTIFY_URL;

@@ -27,6 +27,10 @@ export async function refreshOrder(orderId: string): Promise<VoucherOrder | null
 
   if (payment.paymentStatus === "expired") {
     updated = await updateOrder(existing.id, { orderStatus: "payment_expired" });
+    if (updated && !hasNotified(updated, "payment_expired")) {
+      await notifyWebVoucherEvent("payment_expired", updated);
+      updated = (await updateOrder(updated.id, { notifiedEvents: appendNotified(updated, "payment_expired") })) || updated;
+    }
   } else if (payment.paymentStatus === "failed") {
     updated = await updateOrder(existing.id, { orderStatus: "payment_failed" });
   } else if (payment.paymentStatus === "success") {
@@ -35,6 +39,12 @@ export async function refreshOrder(orderId: string): Promise<VoucherOrder | null
       updated = (await updateOrder(updated.id, { notifiedEvents: appendNotified(updated, "payment_success") })) || updated;
     }
     updated = await handlePaidOrder(updated);
+  } else if (updated.expiresAt && new Date(updated.expiresAt).getTime() <= Date.now()) {
+    updated = await updateOrder(updated.id, { orderStatus: "payment_expired", paymentStatus: "expired" }) || updated;
+    if (!hasNotified(updated, "payment_expired")) {
+      await notifyWebVoucherEvent("payment_expired", updated);
+      updated = (await updateOrder(updated.id, { notifiedEvents: appendNotified(updated, "payment_expired") })) || updated;
+    }
   }
 
   return updated;
