@@ -20,6 +20,12 @@ type OrderView = {
 export default function CheckoutClient({ orderId }: { orderId: string }) {
   const [order, setOrder] = useState<OrderView | null>(null);
   const [error, setError] = useState("");
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    const tick = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(tick);
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -45,6 +51,9 @@ export default function CheckoutClient({ orderId }: { orderId: string }) {
       window.clearInterval(timer);
     };
   }, [orderId]);
+
+  const secondsLeft = order?.expiresAt ? Math.max(0, Math.floor((new Date(order.expiresAt).getTime() - now) / 1000)) : null;
+  const isExpired = order?.status === "payment_expired" || order?.paymentStatus === "expired" || secondsLeft === 0;
 
   return (
     <main className="min-h-screen bg-[#07111f] px-4 py-6 text-white">
@@ -77,7 +86,17 @@ export default function CheckoutClient({ orderId }: { orderId: string }) {
 
               <StatusBox status={order.status} paymentStatus={order.paymentStatus} error={order.errorMessage} />
 
-              {order.paymentUrl ? (
+              {secondsLeft !== null && (
+                <CountdownBox secondsLeft={secondsLeft} expired={isExpired} />
+              )}
+
+              {isExpired ? (
+                <div className="rounded-[2rem] border border-red-200 bg-red-50 p-5 text-center text-red-800">
+                  <div className="text-lg font-black">QRIS sudah expired</div>
+                  <p className="mt-2 text-sm leading-6">Silakan buat order baru supaya QRIS aktif lagi.</p>
+                  <a href="/" className="mt-4 inline-flex rounded-2xl bg-red-600 px-4 py-3 text-sm font-black text-white hover:bg-red-700">Buat QRIS Baru</a>
+                </div>
+              ) : order.paymentUrl ? (
                 <div className="rounded-[2rem] border border-slate-200 bg-gradient-to-b from-slate-50 to-white p-4 text-center shadow-inner">
                   <div className="mb-3 text-sm font-black text-slate-700">Scan QRIS ini</div>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -99,6 +118,19 @@ export default function CheckoutClient({ orderId }: { orderId: string }) {
         </div>
       </div>
     </main>
+  );
+}
+
+function CountdownBox({ secondsLeft, expired }: { secondsLeft: number; expired: boolean }) {
+  const minutes = Math.floor(secondsLeft / 60);
+  const seconds = secondsLeft % 60;
+  const label = `${minutes}:${String(seconds).padStart(2, "0")}`;
+  return (
+    <div className={`rounded-3xl border p-4 text-center ${expired ? "border-red-200 bg-red-50 text-red-800" : secondsLeft <= 120 ? "border-amber-200 bg-amber-50 text-amber-800" : "border-emerald-200 bg-emerald-50 text-emerald-800"}`}>
+      <div className="text-xs font-black uppercase tracking-wide opacity-70">Sisa waktu bayar</div>
+      <div className="mt-1 font-mono text-3xl font-black">{expired ? "Expired" : label}</div>
+      <div className="mt-1 text-xs font-semibold">QRIS biasanya aktif sekitar waktu ini. Bayar sebelum habis ya.</div>
+    </div>
   );
 }
 

@@ -1,5 +1,6 @@
 import { refreshOrder } from "@/lib/orderFlow";
 import { formatRupiah } from "@/lib/format";
+import { VoucherCopy } from "./voucher-copy";
 
 export default async function SuccessPage({ params }: { params: Promise<{ orderId: string }> }) {
   const { orderId } = await params;
@@ -22,11 +23,7 @@ export default async function SuccessPage({ params }: { params: Promise<{ orderI
             <h1 className="mt-4 text-3xl font-black tracking-tight">Kode Voucher WiFi</h1>
             <p className="mt-2 text-sm leading-6 text-slate-500">Masukkan kode ini di halaman login hotspot WiFi. Simpan dulu sebelum menutup halaman.</p>
 
-            <div className="mt-6 rounded-[2rem] bg-gradient-to-br from-slate-950 via-slate-900 to-cyan-950 p-6 text-center text-white shadow-2xl shadow-cyan-950/20">
-              <div className="text-xs font-black uppercase tracking-[0.35em] text-cyan-200">Voucher</div>
-              <div className="mt-4 select-all break-all font-mono text-5xl font-black tracking-widest sm:text-6xl">{order.voucherCode}</div>
-              <div className="mt-4 rounded-full bg-white/10 px-4 py-2 text-xs font-bold text-slate-300">Tap & tahan untuk salin kode</div>
-            </div>
+            <VoucherCopy code={order.voucherCode} />
 
             <div className="mt-5 grid gap-3 rounded-3xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600 sm:grid-cols-2">
               <Info label="Paket" value={order.packageName} />
