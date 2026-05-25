@@ -1,6 +1,6 @@
 import { appendNotified, hasNotified, notifyWebVoucherEvent } from "./botNotifier";
 import { getGatewayPaymentByOrderId } from "./ketantechpay";
-import { getOrder, updateOrder } from "./store";
+import { getOrder, listOrders, updateOrder } from "./store";
 import { generateVoucher } from "./voucherGenerator";
 import type { VoucherOrder } from "./types";
 
@@ -48,6 +48,23 @@ export async function refreshOrder(orderId: string): Promise<VoucherOrder | null
   }
 
   return updated;
+}
+
+export async function sweepExpiredOrders(limit = 500): Promise<{ checked: number; expired: number }> {
+  const orders = await listOrders(limit);
+  let checked = 0;
+  let expired = 0;
+  const now = Date.now();
+
+  for (const order of orders) {
+    if (["paid_delivered", "payment_expired", "payment_failed", "cancelled"].includes(order.orderStatus)) continue;
+    if (!order.expiresAt || new Date(order.expiresAt).getTime() > now) continue;
+    checked += 1;
+    const refreshed = await refreshOrder(order.id);
+    if (refreshed?.orderStatus === "payment_expired") expired += 1;
+  }
+
+  return { checked, expired };
 }
 
 export async function retryVoucherDelivery(orderId: string): Promise<VoucherOrder | null> {
