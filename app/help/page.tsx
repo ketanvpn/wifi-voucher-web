@@ -22,6 +22,28 @@ export default function HelpPage() {
           <li>Kalau halaman login tidak muncul, ketik manual <b className="font-black text-slate-900">{site.loginUrl}</b> di browser.</li>
           <li>Masukkan kode voucher yang muncul setelah pembayaran.</li>
         </ol>
+
+        <section className="mt-7 rounded-3xl border border-slate-200 bg-slate-50 p-5">
+          <h2 className="text-lg font-black text-slate-950">Pertanyaan yang sering muncul</h2>
+          <div className="mt-4 space-y-4 text-sm leading-6 text-slate-600">
+            <Faq question="Sudah bayar, tapi voucher belum muncul?">
+              Tunggu beberapa detik dan jangan tutup halaman checkout. Kalau masih belum muncul, buka halaman checkout lagi atau hubungi admin dengan bukti pembayaran.
+            </Faq>
+            <Faq question="Halaman login WiFi tidak muncul otomatis?">
+              Buka browser lalu ketik <b className="text-slate-900">{site.loginUrl}</b>. Setelah halaman login muncul, masukkan kode voucher.
+            </Faq>
+            <Faq question="QRIS saya expired, harus bagaimana?">
+              Buat pembelian baru dari halaman awal. QRIS yang sudah expired tidak perlu dibayar.
+            </Faq>
+            <Faq question="Voucher bisa dipakai di beberapa HP?">
+              Umumnya 1 voucher untuk 1 perangkat/login aktif. Kalau pindah HP dan tidak bisa login, hubungi admin.
+            </Faq>
+            <Faq question="Salah pilih paket, bisa diganti?">
+              Jika belum dibayar, abaikan saja dan buat order baru. Jika sudah dibayar, hubungi admin.
+            </Faq>
+          </div>
+        </section>
+
         <div className="mt-6 grid gap-2 sm:grid-cols-2">
           <a href="/" className="inline-flex justify-center rounded-xl border border-slate-200 px-4 py-2 text-sm font-black text-slate-700 hover:bg-slate-50">← Kembali ke Beranda</a>
           <a href={site.loginUrl.startsWith("http") ? site.loginUrl : `http://${site.loginUrl}`} className="inline-flex justify-center rounded-xl bg-slate-950 px-4 py-2 text-sm font-bold text-white">Buka Login Manual</a>
@@ -31,5 +53,14 @@ export default function HelpPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+function Faq({ question, children }: { question: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <div className="font-black text-slate-900">{question}</div>
+      <div className="mt-1">{children}</div>
+    </div>
   );
 }
