@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getOrderExpireMinutes, getPackages } from "@/lib/config";
 import { createGatewayCharge } from "@/lib/ketantechpay";
-import { createOrder } from "@/lib/store";
+import { createOrder, updateOrder } from "@/lib/store";
+import { appendNotified, notifyWebVoucherEvent } from "@/lib/botNotifier";
 import type { VoucherOrder } from "@/lib/types";
 
 const bodySchema = z.object({
@@ -53,6 +54,8 @@ export async function POST(request: Request) {
     };
 
     await createOrder(order);
+    await notifyWebVoucherEvent("order_created", order);
+    await updateOrder(order.id, { notifiedEvents: appendNotified(order, "order_created") });
     return NextResponse.json({ data: publicOrder(order) }, { status: 201 });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Gagal membuat order";

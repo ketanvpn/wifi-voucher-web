@@ -37,7 +37,7 @@ export function getOrderExpireMinutes(): number {
 }
 
 export function getDataFile(): string {
-  return process.env.ORDER_DATA_FILE || "./data/orders.json";
+  return process.env.ORDER_DATA_FILE || process.env.WIFI_VOUCHER_DATA_FILE || "./data/orders.json";
 }
 
 export function getKetantechPayConfig() {

@@ -41,4 +41,5 @@ export interface VoucherOrder {
   expiresAt?: string;
   createdAt: string;
   updatedAt: string;
+  notifiedEvents?: string[];
 }
