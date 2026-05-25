@@ -18,6 +18,7 @@ export function getSiteConfig() {
       "Voucher internet cepat, bayar QRIS, kode muncul otomatis.",
     supportWhatsapp: process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP || "",
     wifiSsid: process.env.NEXT_PUBLIC_WIFI_SSID || process.env.NEXT_PUBLIC_SITE_NAME || "TAPEKETAN WiFi",
+    loginUrl: process.env.NEXT_PUBLIC_LOGIN_URL || "tapeketan.net",
   };
 }
 
