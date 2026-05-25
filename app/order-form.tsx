@@ -10,12 +10,18 @@ export default function OrderForm({ packages }: { packages: VoucherPackage[] }) 
   const [customerPhone, setCustomerPhone] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   const selected = packages.find((p) => p.id === packageId);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!packageId) return;
+    if (!packageId || !selected) return;
+    setConfirmOpen(true);
+  }
+
+  async function createOrder() {
+    if (!packageId || !selected) return;
     setLoading(true);
     setError("");
     try {
@@ -83,8 +89,45 @@ export default function OrderForm({ packages }: { packages: VoucherPackage[] }) 
       {error && <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">{error}</div>}
 
       <button disabled={loading || !packageId || packages.length === 0} className="mt-4 w-full rounded-2xl bg-gradient-to-r from-cyan-500 to-emerald-400 px-5 py-4 text-base font-black text-slate-950 shadow-xl shadow-cyan-500/20 transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50">
-        {loading ? "Membuat QRIS…" : "Lanjut Bayar QRIS"}
+        Lanjut Bayar QRIS
       </button>
+
+      {confirmOpen && selected && (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/70 px-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-[2rem] bg-white p-5 text-slate-950 shadow-2xl">
+            <div className="inline-flex rounded-full bg-cyan-100 px-3 py-1 text-xs font-black text-cyan-700">Konfirmasi Pembelian</div>
+            <h3 className="mt-3 text-2xl font-black">Sudah sesuai?</h3>
+            <p className="mt-2 text-sm leading-6 text-slate-500">Cek dulu paket dan nominal sebelum QRIS dibuat.</p>
+
+            <div className="mt-5 rounded-3xl border border-slate-200 bg-slate-50 p-4">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <div className="text-xs font-black uppercase tracking-wide text-slate-400">Paket</div>
+                  <div className="mt-1 text-lg font-black">{selected.name}</div>
+                  <div className="mt-1 text-xs leading-5 text-slate-500">{selected.description || "Voucher WiFi"}</div>
+                </div>
+                <div className="rounded-full bg-slate-950 px-3 py-1 text-sm font-black text-white">{formatRupiah(selected.price)}</div>
+              </div>
+            </div>
+
+            {(customerName || customerPhone) && (
+              <div className="mt-3 rounded-2xl bg-cyan-50 p-3 text-xs leading-5 text-cyan-900">
+                {customerName && <div><b>Nama:</b> {customerName}</div>}
+                {customerPhone && <div><b>HP:</b> {customerPhone}</div>}
+              </div>
+            )}
+
+            <div className="mt-5 grid gap-2 sm:grid-cols-2">
+              <button type="button" disabled={loading} onClick={() => setConfirmOpen(false)} className="rounded-2xl border border-slate-200 px-4 py-3 text-sm font-black text-slate-700 hover:bg-slate-50 disabled:opacity-50">
+                Ubah Dulu
+              </button>
+              <button type="button" disabled={loading} onClick={createOrder} className="rounded-2xl bg-gradient-to-r from-cyan-500 to-emerald-400 px-4 py-3 text-sm font-black text-slate-950 shadow-lg shadow-cyan-500/20 disabled:opacity-50">
+                {loading ? "Membuat QRIS…" : "Ya, Buat QRIS"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </form>
   );
 }
