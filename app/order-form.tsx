@@ -53,15 +53,20 @@ export default function OrderForm({ packages }: { packages: VoucherPackage[] }) 
       {packages.length === 0 ? (
         <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">Paket belum diset oleh admin.</div>
       ) : (
-        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
           {packages.map((pkg) => {
             const active = packageId === pkg.id;
             return (
-              <button key={pkg.id} type="button" onClick={() => setPackageId(pkg.id)} className={`relative rounded-3xl border p-4 text-left transition active:scale-[0.99] ${active ? "border-cyan-500 bg-cyan-50 ring-4 ring-cyan-100" : "border-slate-200 bg-slate-50 hover:border-cyan-300 hover:bg-white"}`}>
-                {active && <div className="absolute right-3 top-3 grid h-6 w-6 place-items-center rounded-full bg-cyan-500 text-xs font-black text-white">✓</div>}
-                <div className="text-lg font-black text-slate-950">{pkg.name}</div>
-                <div className="mt-1 min-h-9 text-xs leading-5 text-slate-500">{pkg.description || "Voucher WiFi"}</div>
-                <div className="mt-4 text-2xl font-black text-slate-950">{formatRupiah(pkg.price)}</div>
+              <button key={pkg.id} type="button" onClick={() => setPackageId(pkg.id)} className={`group relative min-h-32 overflow-hidden rounded-3xl border p-3 text-left shadow-sm transition active:scale-[0.99] sm:p-4 ${active ? "border-cyan-400 bg-gradient-to-br from-cyan-100 via-white to-emerald-100 ring-4 ring-cyan-100" : "border-slate-200 bg-gradient-to-br from-slate-50 via-white to-cyan-50 hover:border-cyan-300 hover:shadow-md"}`}>
+                <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-cyan-300/25 blur-2xl transition group-hover:bg-cyan-300/40" />
+                <div className="pointer-events-none absolute bottom-0 right-0 text-5xl opacity-[0.08] sm:text-6xl">📶</div>
+                <div className="relative flex items-start justify-between gap-2">
+                  <div className="rounded-2xl bg-slate-950 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-cyan-100">WiFi</div>
+                  {active && <div className="grid h-6 w-6 place-items-center rounded-full bg-cyan-500 text-xs font-black text-white shadow-lg shadow-cyan-500/30">✓</div>}
+                </div>
+                <div className="relative mt-3 text-base font-black leading-tight text-slate-950 sm:text-lg">{pkg.name}</div>
+                <div className="relative mt-1 line-clamp-2 min-h-8 text-[11px] leading-4 text-slate-500">{pkg.description || "Voucher WiFi"}</div>
+                <div className="relative mt-3 text-xl font-black text-slate-950 sm:text-2xl">{formatRupiah(pkg.price)}</div>
               </button>
             );
           })}
