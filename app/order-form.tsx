@@ -35,63 +35,56 @@ export default function OrderForm({ packages }: { packages: VoucherPackage[] }) 
   }
 
   return (
-    <form id="checkout" onSubmit={submit} className="rounded-[2rem] border border-white/15 bg-white p-5 text-slate-950 shadow-2xl shadow-cyan-950/30 sm:p-6">
-      <div className="rounded-3xl bg-gradient-to-br from-slate-950 to-slate-800 p-5 text-white">
-        <div className="text-xs font-black uppercase tracking-[0.25em] text-cyan-200">Checkout</div>
-        <h2 className="mt-2 text-2xl font-black">Beli Voucher WiFi</h2>
-        <p className="mt-2 text-sm leading-6 text-slate-300">Isi singkat, bayar QRIS, kode voucher langsung tampil setelah payment sukses.</p>
-      </div>
-
-      <div className="mt-5 space-y-4">
-        <label className="block">
-          <span className="text-sm font-black text-slate-800">Pilih paket</span>
-          <div className="mt-2 grid gap-2">
-            {packages.map((pkg) => (
-              <button key={pkg.id} type="button" onClick={() => setPackageId(pkg.id)} className={`rounded-2xl border p-4 text-left transition ${packageId === pkg.id ? "border-cyan-500 bg-cyan-50 ring-4 ring-cyan-100" : "border-slate-200 bg-slate-50 hover:border-slate-300"}`}>
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <div className="font-black text-slate-950">{pkg.name}</div>
-                    <div className="mt-1 text-xs text-slate-500">{pkg.description || "Voucher WiFi"}</div>
-                  </div>
-                  <div className="rounded-full bg-slate-950 px-3 py-1 text-sm font-black text-white">{formatRupiah(pkg.price)}</div>
-                </div>
-              </button>
-            ))}
-          </div>
-        </label>
-
-        <div className="grid gap-3 sm:grid-cols-2">
-          <label className="block">
-            <span className="text-sm font-black text-slate-800">Nama</span>
-            <input value={customerName} onChange={(e) => setCustomerName(e.target.value)} placeholder="Contoh: Pak Eko" className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-cyan-500 focus:bg-white focus:ring-4 focus:ring-cyan-100" />
-          </label>
-
-          <label className="block">
-            <span className="text-sm font-black text-slate-800">Nomor HP</span>
-            <input value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} placeholder="08xxxxxxxxxx" className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-cyan-500 focus:bg-white focus:ring-4 focus:ring-cyan-100" />
-          </label>
+    <form onSubmit={submit} className="mx-auto max-w-3xl rounded-[2rem] border border-white/15 bg-white p-4 text-slate-950 shadow-2xl shadow-cyan-950/30 sm:p-6">
+      <div className="flex items-start justify-between gap-4 px-1 py-2">
+        <div>
+          <h2 className="text-2xl font-black">Pilih Paket</h2>
+          <p className="mt-1 text-sm text-slate-500">Tap salah satu paket, lalu bayar QRIS.</p>
         </div>
-
-        {selected && (
-          <div className="rounded-3xl border border-slate-200 bg-gradient-to-br from-slate-50 to-cyan-50 p-5">
-            <div className="flex items-end justify-between gap-3">
-              <div>
-                <div className="text-xs font-black uppercase tracking-wide text-slate-500">Total bayar</div>
-                <div className="mt-1 text-3xl font-black text-slate-950">{formatRupiah(selected.price)}</div>
-              </div>
-              <div className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-black text-emerald-700">QRIS</div>
-            </div>
-          </div>
-        )}
-
-        {error && <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">{error}</div>}
-
-        <button disabled={loading || !packageId || packages.length === 0} className="w-full rounded-2xl bg-gradient-to-r from-cyan-500 to-emerald-400 px-5 py-4 text-sm font-black text-slate-950 shadow-xl shadow-cyan-500/20 transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50">
-          {loading ? "Membuat QRIS…" : "Bayar Sekarang"}
-        </button>
-
-        <p className="text-center text-xs leading-5 text-slate-500">Dengan lanjut, kamu akan diarahkan ke halaman QRIS. Simpan kode voucher setelah pembayaran berhasil.</p>
+        <div className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-black text-emerald-700">Online</div>
       </div>
+
+      {packages.length === 0 ? (
+        <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">Paket belum diset oleh admin.</div>
+      ) : (
+        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+          {packages.map((pkg) => {
+            const active = packageId === pkg.id;
+            return (
+              <button key={pkg.id} type="button" onClick={() => setPackageId(pkg.id)} className={`relative rounded-3xl border p-4 text-left transition ${active ? "border-cyan-500 bg-cyan-50 ring-4 ring-cyan-100" : "border-slate-200 bg-slate-50 hover:border-cyan-300 hover:bg-white"}`}>
+                {active && <div className="absolute right-3 top-3 grid h-6 w-6 place-items-center rounded-full bg-cyan-500 text-xs font-black text-white">✓</div>}
+                <div className="text-lg font-black text-slate-950">{pkg.name}</div>
+                <div className="mt-1 min-h-9 text-xs leading-5 text-slate-500">{pkg.description || "Voucher WiFi"}</div>
+                <div className="mt-4 text-2xl font-black text-slate-950">{formatRupiah(pkg.price)}</div>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      <details className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+        <summary className="cursor-pointer text-sm font-black text-slate-700">Isi nama/HP pelanggan (opsional)</summary>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <input value={customerName} onChange={(e) => setCustomerName(e.target.value)} placeholder="Nama, contoh: Pak Eko" className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-cyan-500 focus:ring-4 focus:ring-cyan-100" />
+          <input value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} placeholder="Nomor HP, contoh: 08xxxxxxxxxx" className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-cyan-500 focus:ring-4 focus:ring-cyan-100" />
+        </div>
+      </details>
+
+      {selected && (
+        <div className="mt-4 flex items-center justify-between rounded-3xl bg-gradient-to-br from-slate-950 to-slate-800 p-4 text-white">
+          <div>
+            <div className="text-xs font-black uppercase tracking-wide text-slate-400">Total Bayar</div>
+            <div className="mt-1 text-3xl font-black">{formatRupiah(selected.price)}</div>
+          </div>
+          <div className="rounded-full bg-white/10 px-3 py-1 text-xs font-black text-cyan-100">QRIS</div>
+        </div>
+      )}
+
+      {error && <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">{error}</div>}
+
+      <button disabled={loading || !packageId || packages.length === 0} className="mt-4 w-full rounded-2xl bg-gradient-to-r from-cyan-500 to-emerald-400 px-5 py-4 text-base font-black text-slate-950 shadow-xl shadow-cyan-500/20 transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50">
+        {loading ? "Membuat QRIS…" : "Bayar Sekarang"}
+      </button>
     </form>
   );
 }
