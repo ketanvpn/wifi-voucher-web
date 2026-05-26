@@ -8,15 +8,15 @@ export default function HomePage() {
   const cheapest = packages.length ? Math.min(...packages.map((p) => p.price)) : 0;
 
   return (
-    <main className="min-h-screen overflow-hidden bg-[#07111f] text-white">
+    <main className="min-h-screen overflow-x-hidden bg-[#07111f] text-white">
       <div className="pointer-events-none fixed inset-0">
         <div className="absolute -left-24 top-0 h-72 w-72 rounded-full bg-cyan-500/25 blur-3xl" />
         <div className="absolute right-0 top-20 h-80 w-80 rounded-full bg-emerald-400/20 blur-3xl" />
         <div className="absolute bottom-0 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full bg-blue-600/20 blur-3xl" />
       </div>
 
-      <section className="relative mx-auto max-w-4xl px-4 pb-8 pt-4 sm:pt-6">
-        <nav className="flex items-center justify-between rounded-3xl border border-white/10 bg-white/10 px-4 py-3 shadow-2xl shadow-black/20 backdrop-blur-xl">
+      <section className="relative mx-auto max-w-4xl px-4 pb-8 pt-24 sm:pt-28">
+        <nav className="fixed left-4 right-4 top-3 z-50 mx-auto flex max-w-4xl items-center justify-between rounded-3xl border border-white/10 bg-slate-950/80 px-4 py-3 shadow-2xl shadow-black/20 backdrop-blur-xl supports-[backdrop-filter]:bg-slate-950/55 sm:top-4">
           <div className="flex items-center gap-3">
             <div className="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br from-cyan-300 to-emerald-300 text-lg font-black text-slate-950 shadow-lg shadow-cyan-500/20">TK</div>
             <div>

@@ -19,6 +19,12 @@ export interface VoucherPackage {
   enabled: boolean;
 }
 
+export interface GeneratedVoucher {
+  code: string;
+  index: number;
+  generatedAt: string;
+}
+
 export interface VoucherOrder {
   id: string;
   paymentOrderId: string;
@@ -29,12 +35,16 @@ export interface VoucherOrder {
   packageId: string;
   profile: string;
   packageName: string;
+  quantity?: number;
+  unitPrice?: number;
   amount: number;
   paymentStatus: PaymentStatus;
   orderStatus: OrderStatus;
   paymentUrl?: string;
   qrString?: string;
+  /** Legacy/single-voucher compatibility. For multi-voucher orders this stores the first code. */
   voucherCode?: string;
+  vouchers?: GeneratedVoucher[];
   errorMessage?: string;
   paidAt?: string;
   deliveredAt?: string;

@@ -3,7 +3,7 @@ import { appendWhatsappNotified, hasWhatsappNotified, sendFonnteVoucherMessage }
 import { getGatewayPaymentByOrderId } from "./ketantechpay";
 import { getOrder, listOrders, updateOrder } from "./store";
 import { generateVoucher } from "./voucherGenerator";
-import type { VoucherOrder } from "./types";
+import type { GeneratedVoucher, VoucherOrder } from "./types";
 
 export async function refreshOrder(orderId: string): Promise<VoucherOrder | null> {
   const existing = await getOrder(orderId);
@@ -78,23 +78,37 @@ export async function retryVoucherDelivery(orderId: string): Promise<VoucherOrde
 }
 
 async function handlePaidOrder(order: VoucherOrder, force = false): Promise<VoucherOrder> {
-  if (!force && order.voucherCode && order.orderStatus === "paid_delivered") return order;
+  const targetQuantity = Math.max(1, Math.floor(order.quantity || 1));
+  const existingVouchers = normalizeVouchers(order);
+  if (!force && existingVouchers.length >= targetQuantity && order.orderStatus === "paid_delivered") return order;
 
   await updateOrder(order.id, {
     orderStatus: "paid_generating",
     paidAt: order.paidAt || new Date().toISOString(),
+    vouchers: existingVouchers,
   });
 
+  const vouchers = [...existingVouchers];
   try {
-    const generated = await generateVoucher({
-      orderId: order.id,
-      profile: order.profile,
-      customerName: order.customerName,
-      customerPhone: order.customerPhone,
-    });
+    for (let index = vouchers.length + 1; index <= targetQuantity; index += 1) {
+      const generated = await generateVoucher({
+        orderId: voucherGenerationOrderId(order.id, index, targetQuantity),
+        profile: order.profile,
+        customerName: order.customerName,
+        customerPhone: order.customerPhone,
+      });
+      vouchers.push({ code: generated.voucherCode, index, generatedAt: new Date().toISOString() });
+      await updateOrder(order.id, {
+        vouchers,
+        voucherCode: vouchers[0]?.code,
+        errorMessage: undefined,
+      });
+    }
+
     let delivered = await updateOrder(order.id, {
       orderStatus: "paid_delivered",
-      voucherCode: generated.voucherCode,
+      voucherCode: vouchers[0]?.code,
+      vouchers,
       deliveredAt: new Date().toISOString(),
       errorMessage: undefined,
     });
@@ -112,7 +126,9 @@ async function handlePaidOrder(order: VoucherOrder, force = false): Promise<Vouc
   } catch (err) {
     let pending = await updateOrder(order.id, {
       orderStatus: "paid_pending_voucher",
-      errorMessage: (err as Error).message,
+      voucherCode: vouchers[0]?.code,
+      vouchers,
+      errorMessage: `Berhasil buat ${vouchers.length}/${targetQuantity} voucher. ${(err as Error).message}`,
     });
     if (pending && !hasNotified(pending, "voucher_pending")) {
       await notifyWebVoucherEvent("voucher_pending", pending);
@@ -126,4 +142,16 @@ async function handlePaidOrder(order: VoucherOrder, force = false): Promise<Vouc
     }
     return pending || order;
   }
+}
+
+function normalizeVouchers(order: VoucherOrder): GeneratedVoucher[] {
+  if (Array.isArray(order.vouchers) && order.vouchers.length > 0) return order.vouchers;
+  if (order.voucherCode) {
+    return [{ code: order.voucherCode, index: 1, generatedAt: order.deliveredAt || order.updatedAt || new Date().toISOString() }];
+  }
+  return [];
+}
+
+function voucherGenerationOrderId(orderId: string, index: number, quantity: number): string {
+  return quantity <= 1 ? orderId : `${orderId}:${index}`;
 }

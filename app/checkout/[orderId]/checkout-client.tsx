@@ -7,6 +7,8 @@ type OrderView = {
   orderId: string;
   paymentOrderId: string;
   amount: number;
+  unitPrice?: number;
+  quantity?: number;
   packageName: string;
   status: string;
   paymentStatus: string;
@@ -83,6 +85,7 @@ export default function CheckoutClient({ orderId }: { orderId: string }) {
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <div className="text-xl font-black">{order.packageName}</div>
+                    <div className="mt-1 text-xs font-bold text-cyan-100">{order.quantity || 1} voucher × {formatRupiah(order.unitPrice || order.amount)}</div>
                     <div className="mt-1 font-mono text-[11px] text-slate-400">{order.paymentOrderId}</div>
                   </div>
                   <div className="rounded-full bg-white px-3 py-1 text-sm font-black text-slate-950">{formatRupiah(order.amount)}</div>

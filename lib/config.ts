@@ -38,6 +38,12 @@ export function getOrderExpireMinutes(): number {
   return Number.isFinite(n) && n > 0 ? n : 15;
 }
 
+export function getMaxVoucherQuantity(): number {
+  const n = Number(process.env.MAX_VOUCHER_QUANTITY || "10");
+  if (!Number.isFinite(n) || n < 1) return 10;
+  return Math.min(Math.floor(n), 50);
+}
+
 export function getDataFile(): string {
   return process.env.ORDER_DATA_FILE || process.env.WIFI_VOUCHER_DATA_FILE || "./data/orders.json";
 }

@@ -25,14 +25,22 @@ function loginLink(loginUrl: string): string {
   return loginUrl.startsWith("http") ? loginUrl : `http://${loginUrl}`;
 }
 
+function voucherCodes(order: VoucherOrder): string[] {
+  const fromArray = Array.isArray(order.vouchers) ? order.vouchers.map((v) => v.code).filter(Boolean) : [];
+  if (fromArray.length > 0) return fromArray;
+  return order.voucherCode ? [order.voucherCode] : [];
+}
+
 function buildMessage(kind: FonnteMessageKind, order: VoucherOrder): string {
   const site = getSiteConfig();
   const name = order.customerName?.trim() || "Kak";
+  const quantity = order.quantity || voucherCodes(order).length || 1;
   if (kind === "voucher_pending") {
     return [
       `Halo ${name}, pembayaran voucher WiFi sudah diterima ✅`,
       "",
       `Paket: ${order.packageName}`,
+      `Jumlah: ${quantity} voucher`,
       `Total: ${formatRupiah(order.amount)}`,
       "",
       "Voucher sedang diproses admin. Mohon tunggu sebentar ya.",
@@ -40,12 +48,18 @@ function buildMessage(kind: FonnteMessageKind, order: VoucherOrder): string {
     ].join("\n");
   }
 
+  const codes = voucherCodes(order);
+  const voucherLines = codes.length > 1
+    ? codes.map((code, index) => `${index + 1}. ${code}`)
+    : [`Kode Voucher: ${codes[0] || "-"}`];
+
   return [
     `Halo ${name}, pembayaran voucher WiFi berhasil ✅`,
     "",
     `Paket: ${order.packageName}`,
+    `Jumlah: ${quantity} voucher`,
     `Total: ${formatRupiah(order.amount)}`,
-    `Kode Voucher: ${order.voucherCode || "-"}`,
+    ...voucherLines,
     "",
     `Sambungkan ke WiFi: ${site.wifiSsid}`,
     `Kalau halaman login tidak muncul, buka: ${site.loginUrl}`,

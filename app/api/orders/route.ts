@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getOrderExpireMinutes, getPackages } from "@/lib/config";
+import { getMaxVoucherQuantity, getOrderExpireMinutes, getPackages } from "@/lib/config";
 import { createGatewayCharge } from "@/lib/ketantechpay";
 import { createOrder, updateOrder } from "@/lib/store";
 import { appendNotified, notifyWebVoucherEvent } from "@/lib/botNotifier";
@@ -8,6 +8,7 @@ import type { VoucherOrder } from "@/lib/types";
 
 const bodySchema = z.object({
   packageId: z.string().min(1),
+  quantity: z.coerce.number().int().min(1).optional().default(1),
   customerName: z.string().trim().max(80).optional().or(z.literal("")),
   customerPhone: z.string().trim().max(30).optional().or(z.literal("")),
 });
@@ -15,6 +16,8 @@ const bodySchema = z.object({
 export async function POST(request: Request) {
   try {
     const input = bodySchema.parse(await request.json());
+    const maxQuantity = getMaxVoucherQuantity();
+    const quantity = Math.min(maxQuantity, Math.max(1, input.quantity));
     const pkg = getPackages().find((p) => p.id === input.packageId && p.enabled);
     if (!pkg) {
       return NextResponse.json({ error: "PACKAGE_NOT_FOUND", message: "Paket tidak tersedia" }, { status: 404 });
@@ -24,13 +27,14 @@ export async function POST(request: Request) {
     const orderId = `ord_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
     const paymentOrderId = `WIFI-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
     const expiresAt = new Date(now.getTime() + getOrderExpireMinutes() * 60_000).toISOString();
+    const amount = pkg.price * quantity;
 
     const payment = await createGatewayCharge({
       orderId: paymentOrderId,
-      amount: pkg.price,
+      amount,
       customerName: input.customerName || undefined,
       customerPhone: input.customerPhone || undefined,
-      description: `Voucher WiFi ${pkg.name}`,
+      description: quantity > 1 ? `Voucher WiFi ${pkg.name} x${quantity}` : `Voucher WiFi ${pkg.name}`,
     });
 
     const order: VoucherOrder = {
@@ -43,7 +47,9 @@ export async function POST(request: Request) {
       packageId: pkg.id,
       profile: pkg.profile,
       packageName: pkg.name,
-      amount: pkg.price,
+      quantity,
+      unitPrice: pkg.price,
+      amount,
       paymentStatus: payment.paymentStatus || "pending",
       orderStatus: "waiting_payment",
       paymentUrl: payment.paymentUrl,
@@ -68,6 +74,8 @@ function publicOrder(order: VoucherOrder) {
     orderId: order.id,
     paymentOrderId: order.paymentOrderId,
     amount: order.amount,
+    unitPrice: order.unitPrice || order.amount,
+    quantity: order.quantity || 1,
     packageName: order.packageName,
     status: order.orderStatus,
     paymentStatus: order.paymentStatus,

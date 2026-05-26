@@ -15,10 +15,13 @@ export async function GET(
 }
 
 function publicOrder(order: VoucherOrder) {
+  const vouchers = Array.isArray(order.vouchers) ? order.vouchers : [];
   return {
     orderId: order.id,
     paymentOrderId: order.paymentOrderId,
     amount: order.amount,
+    unitPrice: order.unitPrice || order.amount,
+    quantity: order.quantity || Math.max(1, vouchers.length),
     packageName: order.packageName,
     profile: order.profile,
     status: order.orderStatus,
@@ -26,6 +29,7 @@ function publicOrder(order: VoucherOrder) {
     paymentUrl: order.paymentUrl,
     qrString: order.qrString,
     voucherCode: order.orderStatus === "paid_delivered" ? order.voucherCode : undefined,
+    vouchers: ["paid_delivered", "paid_pending_voucher"].includes(order.orderStatus) ? vouchers : undefined,
     errorMessage: order.orderStatus === "paid_pending_voucher" ? order.errorMessage : undefined,
     expiresAt: order.expiresAt,
     paidAt: order.paidAt,
